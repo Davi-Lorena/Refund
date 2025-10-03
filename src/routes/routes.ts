@@ -1,4 +1,5 @@
 import { Router } from "express"
+import { ensureAuthenticated } from "@/middlewares/ensure-authenticated"
 
 import { userRoutes } from "./users-routes"
 
@@ -12,6 +13,7 @@ routes.use("/users", userRoutes)
 routes.use("/sessions", sessionsRoutes)
 
 // Private routes
+routes.use(ensureAuthenticated) // Rotas daqui pra baixo pedem ele 
 routes.use("/refunds", refundsRoutes)
 
 export { routes }
