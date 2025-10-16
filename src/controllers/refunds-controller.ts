@@ -1,5 +1,7 @@
-import { Request, Response } from "express"
+import { prisma } from "@/database/prisma"
+import { request, Request, Response } from "express"
 import { z } from "zod"
+import { AppError } from "@/utils/AppError"
 import { Category } from "@prisma/client"
 
 const categories = z.nativeEnum(Category)
@@ -23,7 +25,22 @@ filename: z.string().min(20)
 
 const {name, category, amount, filename} = bodySchema.parse(req.body)
 
-    res.json({message: "ok"})
+if(!req.user?.id) {
+    throw new AppError("Unauthorized!", 401)
+}
+
+const refund = await prisma.refunds.create({
+    data: {
+        name, 
+        category,
+        amount,
+        filename,
+        userId: req.user.id
+    }
+})
+
+
+    res.status(201).json(refund)
 }
 
 }
