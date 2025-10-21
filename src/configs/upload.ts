@@ -29,7 +29,7 @@ filename(req, file, callback) {
     }) 
 }
 
-export {
+export default {
     TMP_FOLDER,
     UPLOADS_FOLDER,
     MULTER,
