@@ -46,12 +46,20 @@ const refund = await prisma.refunds.create({
 async index(req: Request, res: Response) {
 
 const querySchema = z.object({
-name: z.string().optional().default("")
+name: z.string().optional().default(""),
+page: z.coerce.number().min(1).default(1),
+perPage: z.coerce.number().optional().default(10)
 })
 
-const { name } = querySchema.parse(req.query)
+const { name, page, perPage } = querySchema.parse(req.query)
+
+// Calculando o skip 
+
+const skip = (page - 1) * perPage
 
     const refunds = await prisma.refunds.findMany({
+        skip,
+        take: perPage,
         where: {
             user: {
                 name: {
@@ -63,8 +71,28 @@ const { name } = querySchema.parse(req.query)
         include: {user: true}
     })
 
+    // Obter o número de registros para calcular o número de páginas 
 
-    res.json(refunds)
+    const totalRecords = await prisma.refunds.count({
+        where: {
+            user: {
+                name: {
+                    contains: name.trim()
+                }
+            }
+        },
+    })
+
+    const totalPages = Math.ceil(totalRecords / perPage)
+
+    res.json({refunds,
+        pagination: {
+            page,
+            perPage,
+            totalRecords,
+            totalPages: totalPages > 0 ? totalPages : 1,
+        }
+    })
 }
 
 }
